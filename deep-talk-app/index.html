@@ -1,0 +1,778 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unendliche Fragen – Speicher + Pfeile zentriert</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #222, #111);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      padding: 1rem;
+      margin: 0;
+      transition: background 1s ease;
+      position: relative;
+    }
+
+    .container {
+      max-width: 700px;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    .hint {
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #888;
+    }
+
+    .arrow-buttons {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .arrow-buttons button {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 50%;
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .arrow-buttons button:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .click-area {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log('Service Worker registriert.');
+      });
+    }
+  
+
+
+</script>
+
+
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log('✅ Service Worker registriert');
+      });
+    }
+  </script>
+</head>
+
+<body>
+  <div class="click-area" onclick="nextQuestion()"></div>
+  <div class="container content">
+    
+    <h2 style="
+      font-size: 2.5rem;
+      color: #fffc;
+      text-shadow: 0 0 8px #ffffff22;
+      margin-bottom: 1rem;
+    ">∞ Fragen</h2>
+    
+<h1 id="question">Klick irgendwo oder nutze die Pfeile</h1>
+    <div class="arrow-buttons">
+      <button onclick="prevQuestion()">⬅</button>
+      <button onclick="nextQuestion()">➡</button>
+    </div>
+    <div class="hint">Fragenverlauf wird gespeichert 🎉</div>
+<div style="margin-top: 1.5rem;">
+  
+<div style="margin-top: 2rem; display: flex; flex-direction: column; align-items: center;">
+  <label for="categorySelect" style="color: #ccc; font-size: 1rem; margin-bottom: 0.5rem;">🗂️ Kategorie wählen:</label>
+  <select id="categorySelect" onchange="selectCategory()" style="
+    background-color: #1e1e1e;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 1rem;
+    max-width: 250px;
+    width: 100%;
+    box-shadow: 0 0 8px #00000033;
+  ">
+    <option value="Alle">🌐 Alle Kategorien</option>
+    <option value="Liebe">❤️ Liebe</option>
+    <option value="Philosophie">🧠 Philosophie</option>
+    <option value="Leben">🌱 Leben</option>
+    <option value="Spaß">🎉 Spaß</option>
+  </select>
+</div>
+
+
+
+<div style="margin-top: 2rem;">
+  
+<div id="progress" class="hint" style="margin-top: 10px;"></div>
+  </div>
+  <audio id="sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_a5e3e4d34e.mp3?filename=click-124467.mp3"></audio>
+
+  <script>
+    const allQuestions = [
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?",
+  "Kann man Fehler wirklich verzeihen – oder vergisst man nur?",
+  "Was ist schwerer: Lieben oder Loslassen?",
+  "Wenn Geld keine Rolle spielen würde – was würdest du tun?",
+  "Wann warst du zuletzt wirklich mutig?",
+  "Was würdest du tun, wenn du wüsstest, du hast nur noch ein Jahr zu leben?",
+  "Was macht eine Beziehung wirklich aus?",
+  "Welche Entscheidung in deinem Leben hat alles verändert?",
+  "Wie gehst du mit Kritik um?",
+  "Wie wichtig ist dir die Balance zwischen Arbeit und Freizeit?",
+  "Was möchtest du hinterlassen, wenn du gehst?",
+  "Was bedeutet Glück für dich?",
+  "Glaubst du, dass alles im Leben einen Sinn hat?",
+  "Kann man sich selbst wirklich kennen?",
+  "Was ist wichtiger: Wahrheit oder Mitgefühl?",
+  "Wo siehst du dich in 10 Jahren – und warum?"
+];
+
+    let questionPool = [];
+    let history = [];
+    const questionEl = document.getElementById("question");
+    const sound = document.getElementById("sound");
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    const questionsByCategory = {
+  "Liebe": [
+    "Was bedeutet Liebe für dich?",
+    "Kann man mehrere Menschen gleichzeitig lieben?",
+    "Was ist für dich ein absolutes No-Go in einer Beziehung?",
+    "Wie zeigt man wahre Zuneigung?",
+    "Was war dein schönster Liebesmoment?"
+  ],
+  "Philosophie": [
+    "Gibt es so etwas wie freien Willen?",
+    "Was ist der Sinn des Lebens?",
+    "Gibt es eine absolute Wahrheit?",
+    "Ist der Mensch von Natur aus gut oder schlecht?",
+    "Wie würdest du Glück definieren?"
+  ],
+  "Leben": [
+    "Was macht ein erfülltes Leben aus?",
+    "Welche Entscheidung hat dein Leben verändert?",
+    "Wie gehst du mit Rückschlägen um?",
+    "Was möchtest du im Leben erreichen?",
+    "Welche Werte sind dir wichtig?"
+  ],
+  "Spaß": [
+    "Was war das Lustigste, das dir je passiert ist?",
+    "Wenn du eine Superkraft hättest – welche wäre es?",
+    "Mit welchem Promi würdest du gern mal Pizza essen?",
+    "Was ist dein peinlichstes Hobby?",
+    "Was würdest du tun, wenn du einen Tag unsichtbar wärst?"
+  ]
+};
+let currentCategory = "Alle";
+
+function selectCategory() {
+  currentCategory = document.getElementById("categorySelect").value;
+  refillQuestions();
+  nextQuestion();
+}
+
+function refillQuestions() {
+  if (currentCategory === "Alle") {
+    questionPool = [].concat(...Object.values(questionsByCategory));
+  } else {
+    questionPool = [...questionsByCategory[currentCategory]];
+  }
+  shuffle(questionPool);
+}
+
+    function playSound() {
+      sound.currentTime = 0;
+      sound.play();
+    }
+
+    function changeBackground() {
+      const colors = [
+        "#1a1a2e", "#16213e", "#0f3460", "#53354a",
+        "#903749", "#11999e", "#2d4059", "#3a4750"
+      ];
+      const random = colors[Math.floor(Math.random() * colors.length)];
+      document.body.style.background = `linear-gradient(135deg, ${random}, #111)`;
+    }
+
+    function nextQuestion() {
+      if (questionPool.length === 0) {
+        refillQuestions();
+      }
+      if (questionEl.textContent) {
+        history.push(questionEl.textContent);
+        saveHistory();
+      }
+      const next = questionPool.pop();
+      questionEl.textContent = next;
+      updateProgress();
+      playSound();
+      changeBackground();
+    }
+
+    function prevQuestion() {
+      if (history.length > 0) {
+        const last = history.pop();
+        questionEl.textContent = last;
+      updateProgress();
+        saveHistory();
+        playSound();
+        changeBackground();
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem("questionHistory", JSON.stringify(history));
+      localStorage.setItem("currentQuestion", questionEl.textContent);
+    }
+
+    
+    function updateProgress() {
+      const total = allQuestions.length;
+      const done = history.length + 1;
+      document.getElementById("progress").textContent = `Frage ${done} von ∞`;
+    }
+
+
+function loadFromStorage() {
+      const saved = localStorage.getItem("questionHistory");
+      const current = localStorage.getItem("currentQuestion");
+      if (saved) history = JSON.parse(saved);
+      if (current) questionEl.textContent = current;
+    }
+
+    refillQuestions();
+    loadFromStorage();
+updateProgress();
+  
+
+
+</script>
+</body>
+</html>
